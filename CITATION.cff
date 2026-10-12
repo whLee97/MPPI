@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the accompanying paper, Multi-Source Prediction-Powered Inference."
+type: software
+title: "MPPI: Multi-Source Prediction-Powered Inference"
+version: 1.0.0
+license: MIT
+authors:
+  - family-names: Li
+    given-names: Wenhui
+    orcid: "https://orcid.org/0000-0002-0743-7921"
+  - family-names: Jiang
+    given-names: Fen
+    orcid: "https://orcid.org/0009-0008-1622-9666"
+  - family-names: Zhang
+    given-names: Xinyu
+    orcid: "https://orcid.org/0000-0002-9044-1410"

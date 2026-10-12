@@ -1,0 +1,50 @@
+{
+  "reference_version": "mppi-paper-v1",
+  "B": 1000,
+  "N0": 5000,
+  "Ns": [
+    10000,
+    20000,
+    30000
+  ],
+  "K": 5,
+  "alpha": 0.05,
+  "design_groups": [
+    {
+      "scenario_ids": [
+        1,
+        2,
+        7,
+        8
+      ],
+      "source_summary_sha256": "4084efd3d781c7ffdd0d117f3b830556976503775bbfaffd68e94b3f7b236a34"
+    },
+    {
+      "scenario_ids": [
+        4,
+        5,
+        6,
+        10,
+        11,
+        12
+      ],
+      "source_summary_sha256": "3cccdb7a6968400130cd3b4b729f608c75eb45754f8b928e432920839cf7bb43"
+    },
+    {
+      "scenario_ids": [
+        3,
+        9
+      ],
+      "source_summary_sha256": "3de508ad050d25e8014437303f47291cf2c394ab397d1f23707ab3fe11cc7277"
+    }
+  ],
+  "note": "Approved Monte Carlo reference results; fresh runs receive new manifests. Normal diagnostics retain only MPPI mean-inference coordinates. Domain mean curves use the union of the original and denser local null grids; both are evaluated on the same replications.",
+  "reference_sha256": {
+    "dxa_pvalue_curves.csv": "9fef1888e4b986436fd59e916deeb929c6e8cd105b6eabcb0f137a216b096633",
+    "dxa_results.csv": "19a43ff847218abb2923ffefac8759de003a2e065768e888c23e8c590b9d906b",
+    "mean_test_curves.csv": "81ee197c5cfac287abf1a7978d0bfdf27b1b58668b4b16d53a32ee728bff229b",
+    "normal_diagnostics.csv": "36fe4fa11c7969682a185bb20a5a6a0a2241ff623635dd18423299d0f023c30f",
+    "regression_test_curves.csv": "7bb1d36ded115cd54be4ae95cb2f7abcb2458622b747a2603eb7d5f52e74f1ff",
+    "simulation_summary.csv": "773228c47b7eb9dc6608cd46238ad9bb52d6d562a466a062889b196bdb30c88a"
+  }
+}
