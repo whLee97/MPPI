@@ -12,13 +12,15 @@ mppi_simulation_config <- function(B = 1000L, K = 5L) {
     B = as.integer(B), K = as.integer(K), alpha = 0.05,
     regression_quadratic = c(a = 1, b = 1),
     mean_nonlinear = list(noise_sd = 1),
+    domain_mean_linear_noise_sd = 1,
     S = 3L, d = 2L, N0 = 5000L, Ns = c(10000L, 20000L, 30000L),
     beta = c(1.2, -0.8),
     covariate_means = list(rep(-0.5, 2), rep(-1, 2), rep(1.5, 2)),
     domain_A = lapply(seq_len(3L), function(s) diag(1 + 0.05 * s * c(0.5, 1))),
     domain_b = lapply(seq_len(3L), function(s) s * c(0.05, -0.025)),
     scenarios = scenarios,
-    seeds = list(auxiliary = 123L, inference = 12001L, folds = 27011L, candidates = 41017L),
+    seeds = list(auxiliary = 123L, inference = 12001L, folds = 27011L, candidates = 41017L,
+                 domain = list(inference = 1021001L, folds = 1036011L, candidates = 1050017L)),
     optimizer = list(M_n = NULL, max_iter = 5000L, eps_w = 1e-7,
                      eta0 = 1, rho = 0.5, armijo = 0.1, max_backtrack = 60L),
     finite_difference = list(relative_step = 2e-5, min_step = 1e-7, spd_rel_tol = 1e-10)
@@ -34,6 +36,12 @@ mppi_validate_config <- function(cfg) {
   invisible(cfg)
 }
 
+# Keep the original seeds for unchanged settings and seed2 for domain shift.
+mppi_simulation_seed_base <- function(cfg, scenario, stage) {
+  domain <- identical(as.character(scenario$shift), "domain") && stage %in% names(cfg$seeds$domain)
+  as.integer(if (domain) cfg$seeds$domain[[stage]] else cfg$seeds[[stage]])
+}
+
 mppi_g_standard <- function(x, dgp) {
   x <- as.matrix(x)
   if (dgp == "linear") return(1.2 * x[, 1L] - 0.8 * x[, 2L])
@@ -41,13 +49,30 @@ mppi_g_standard <- function(x, dgp) {
   stop("Unknown standard DGP.", call. = FALSE)
 }
 
-mppi_h3 <- function(z) (z^3 - 3*z) / sqrt(6)
+mppi_rstd_logistic <- function(n, d) matrix(rlogis(n * d) * sqrt(3) / pi, nrow = n, ncol = d)
+mppi_h3_domain <- function(z) {
+  m4 <- 21 / 5; m6 <- 279 / 7
+  (z^3 - m4 * z) / sqrt(m6 - m4^2)
+}
+# Rounded c_L is intentionally retained to reproduce the archived B=1000 runs.
+mppi_q2_domain <- function(z) 0.555 * (z^2 - 1)
+mppi_h3 <- function(z) (z^3 - 3 * z) / sqrt(6)
 
 mppi_g_domain_mean <- function(z, dgp) {
   z <- as.matrix(z)
   if (dgp == "linear") return(1 + 1.2 * z[, 1L] + 1.2 * z[, 2L])
-  if (dgp == "nonlinear") return(1 + mppi_h3(z[, 1L]) + mppi_h3(z[, 2L]))
+  if (dgp == "nonlinear") return(1 + mppi_h3_domain(z[, 1L]) + mppi_h3_domain(z[, 2L]))
   stop("Unknown domain-shift mean DGP.", call. = FALSE)
+}
+
+mppi_g_domain_regression <- function(z, dgp, coefficients = c(a = 1, b = 1)) {
+  z <- as.matrix(z)
+  linear <- 1.2 * z[, 1L] - 0.8 * z[, 2L]
+  if (dgp == "linear") return(linear)
+  if (dgp == "nonlinear")
+    return(linear + coefficients[1L] * mppi_q2_domain(z[, 1L]) +
+           coefficients[2L] * mppi_q2_domain(z[, 2L]))
+  stop("Unknown domain-shift regression DGP.", call. = FALSE)
 }
 
 mppi_g_complementary_regression <- function(x, dgp, coefficients = c(a = 1, b = 1)) {

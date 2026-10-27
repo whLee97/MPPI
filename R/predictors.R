@@ -18,10 +18,20 @@ mppi_feature_domain <- function(x, target, dgp, source, preprocessing = NULL, tr
     }
     u <- sweep(sweep(x, 2L, preprocessing$center, "-"), 2L, preprocessing$scale, "/")
     if (source == 1L) {
-      out <- if (dgp == "linear") cbind(1, u[, 1L]) else cbind(1, u[, 1L], mppi_h3(u[, 1L]))
+      out <- if (dgp == "linear") {
+        cbind(1, u[, 1L]^3)
+      } else {
+        cbind(1, u[, 1L], mppi_h3(u[, 1L]))
+      }
     } else if (source == 2L) {
-      out <- if (dgp == "linear") cbind(1, u[, 2L]) else cbind(1, u[, 2L], mppi_h3(u[, 2L]))
-    } else out <- matrix(1, nrow(x), 1L)
+      out <- if (dgp == "linear") {
+        cbind(1, u[, 2L]^3)
+      } else {
+        cbind(1, u[, 2L], mppi_h3(u[, 2L]))
+      }
+    } else {
+      out <- matrix(1, nrow(x), 1L)
+    }
     return(list(x = out, preprocessing = preprocessing))
   }
   mppi_assert(dgp == "linear", "Nonlinear regression uses complementary predictor features.")
@@ -91,14 +101,13 @@ mppi_fit_auxiliary_predictors <- function(cfg, shift, target, dgp, scenario_id) 
     models <- vector("list", cfg$S)
     for (s in seq_len(cfg$S)) {
       if (shift == "domain") {
-        z <- mppi_rmvnorm(cfg$Ns[s], rep(0, cfg$d), diag(cfg$d))
+        z <- mppi_rstd_logistic(cfg$Ns[s], cfg$d)
         x <- sweep(z %*% t(cfg$domain_A[[s]]), 2L, cfg$domain_b[[s]], "+")
         signal <- if (target == "mean") mppi_g_domain_mean(z, dgp) else
-          if (dgp == "nonlinear") mppi_g_complementary_regression(z, dgp, cfg$regression_quadratic) else
-            mppi_domain_partial_signal(z, s, dgp)
-        noise_sd <- if (target == "mean") {
-          if (dgp == "nonlinear") cfg$mean_nonlinear$noise_sd else 7
-        } else 1
+          if (dgp == "nonlinear") mppi_g_domain_regression(z, dgp, cfg$regression_quadratic) else
+          mppi_domain_partial_signal(z, s, dgp)
+        noise_sd <- if (target != "mean") 1 else if (dgp == "nonlinear")
+          cfg$mean_nonlinear$noise_sd else cfg$domain_mean_linear_noise_sd
         y <- signal + rnorm(cfg$Ns[s], sd = noise_sd)
         kind <- if (target == "regression" && dgp == "nonlinear") "complementary" else "domain"
         models[[s]] <- mppi_fit_predictor(x, y, kind, target, dgp, s)

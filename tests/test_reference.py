@@ -9,6 +9,8 @@ ref = root / 'reference'
 provenance = json.loads((ref / 'provenance.json').read_text())
 for name, digest in provenance['reference_sha256'].items():
     assert hashlib.sha256((ref / name).read_bytes()).hexdigest() == digest, name
+for name, digest in provenance.get('figures_sha256', {}).items():
+    assert hashlib.sha256((ref / 'figures' / name).read_bytes()).hexdigest() == digest, name
 
 def read(name):
     with (ref / name).open() as stream:
@@ -32,6 +34,10 @@ for row in read('mean_test_curves.csv'):
 for row in read('regression_test_curves.csv'):
     if float(row['radius']) == 0:
         assert abs(float(row['rejection_frequency']) - (1 - lookup[int(row['scenario_id']), row['method']])) < 1e-10
+# Freeze the formally reported domain-shift rows to catch an accidental old-reference mix.
+volumes = {(int(row['scenario_id']), row['method']): float(row['mean_volume']) for row in summary}
+for scenario, expected in [(3, 3.7460), (6, 0.9953), (9, 1.7087), (12, 31.7663)]:
+    assert abs(volumes[scenario, 'MPPI'] - expected) < 0.0001, (scenario, volumes[scenario, 'MPPI'])
 normal = read('normal_diagnostics.csv')
 assert len(normal) == 6000
 for id in (1, 2, 3, 7, 8, 9):

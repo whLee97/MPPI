@@ -67,14 +67,14 @@ mppi_export_paper <- function(summary_dir, dxa_dir, output_dir) {
 
   if (all(c(1L,7L) %in% curves$scenario_id)) make_shift_figure(c(1L,7L),'Homogeneous','mean_rejection_homogeneous.pdf')
   if (all(c(2L,8L) %in% curves$scenario_id)) make_shift_figure(c(2L,8L),'Covariate shift','mean_rejection_covariate.pdf')
-  if (all(c(3L,9L) %in% curves$scenario_id)) make_shift_figure(c(3L,9L),'Domain shift','mean_rejection_domain.pdf')
+  # Domain-shift mean results use the final equal-width main panels with linear raw zooms.
 
   reg_curves <- read.csv(file.path(summary_dir, 'regression_test_curves.csv'), check.names=FALSE)
   normal_diag <- read.csv(file.path(summary_dir, 'normal_diagnostics.csv'), check.names=FALSE)
 
   regression_panel <- function(dat, title) {
     xlim <- range(dat$radius); ylim <- c(0, 1.05)
-    plot(NA, xlim=xlim, ylim=ylim, xlab=expression(r == group('|', theta[0]-theta^'*', '|')[2]),
+    plot(NA, xlim=xlim, ylim=ylim, xlab=expression(r == paste("||", theta[0] - theta^"*", "||")[2]),
          ylab='Empirical rejection probability', axes=FALSE, main=title, cex.main=1.18,
          cex.lab=1.05, font.main=2, xaxs='i', yaxs='i')
     rect(xlim[1], ylim[1], xlim[2], ylim[2], col='white', border=NA)
@@ -115,14 +115,15 @@ mppi_export_paper <- function(summary_dir, dxa_dir, output_dir) {
 
   if (all(c(4L,10L) %in% reg_curves$scenario_id)) make_regression_figure(c(4L,10L),'Homogeneous','regression_rejection_homogeneous.pdf')
   if (all(c(5L,11L) %in% reg_curves$scenario_id)) make_regression_figure(c(5L,11L),'Covariate shift','regression_rejection_covariate.pdf')
-  if (all(c(6L,12L) %in% reg_curves$scenario_id)) make_regression_figure(c(6L,12L),'Domain shift','regression_rejection_domain.pdf')
+  if (all(c(3L,9L) %in% curves$scenario_id) && all(c(6L,12L) %in% reg_curves$scenario_id))
+    mppi_export_domain_raw_zoom(summary_dir, out_pdf)
 
   normal_mppi <- normal_diag[normal_diag$target=='mean' & normal_diag$method=='MPPI' & normal_diag$coordinate==1L,]
   normal_ids <- matrix(c(1L,2L,3L,7L,8L,9L), nrow=2, byrow=TRUE)
   normal_titles <- matrix(c('Homogeneous, linear','Covariate shift, linear','Domain shift, linear',
                             'Homogeneous, nonlinear','Covariate shift, nonlinear','Domain shift, nonlinear'), nrow=2, byrow=TRUE)
   if (all(normal_ids %in% normal_mppi$scenario_id)) {
-  pdf(file.path(out_pdf,'normal_diagnostics_mean_mppi.pdf'), width=10.5, height=6.8, family='Helvetica', useDingbats=FALSE)
+  pdf(file.path(out_pdf,'normal_diag_mean_MPPI_all_settings.pdf'), width=10.5, height=6.8, family='Helvetica', useDingbats=FALSE)
   op <- par(mfrow=c(2,3), mar=c(3.6,3.7,2.3,0.7), oma=c(0.2,0.2,0.2,0.2), mgp=c(2.25,0.65,0), tcl=-0.22)
   for (i in seq_len(nrow(normal_ids))) for (j in seq_len(ncol(normal_ids))) {
     z <- normal_mppi$z[normal_mppi$scenario_id==normal_ids[i,j]]

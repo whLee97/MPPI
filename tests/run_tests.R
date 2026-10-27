@@ -19,7 +19,7 @@ test("confirmed DGP values", {
   z <- matrix(c(1, 2), 1, 2)
   check(near(mppi_g_domain_mean(z, "linear"), 1 + 1.2 + 2.4), "Domain mean linear DGP changed.")
   check(near(mppi_g_standard(z, "linear"), 1.2 - 1.6), "Standard linear DGP changed.")
-  check(near(mppi_g_domain_mean(z, "nonlinear"), 1 + sum(mppi_h3(z))), "Nonlinear domain mean DGP changed.")
+  check(near(mppi_g_domain_mean(z, "nonlinear"), 1 + sum(mppi_h3_domain(z))), "Nonlinear domain mean DGP changed.")
 })
 
 test("domain mean predictor is fixed after auxiliary training", {

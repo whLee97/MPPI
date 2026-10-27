@@ -14,37 +14,50 @@
       "scenario_ids": [
         1,
         2,
-        7,
-        8
-      ],
-      "source_summary_sha256": "4084efd3d781c7ffdd0d117f3b830556976503775bbfaffd68e94b3f7b236a34"
-    },
-    {
-      "scenario_ids": [
         4,
         5,
-        6,
+        7,
+        8,
         10,
-        11,
-        12
+        11
       ],
-      "source_summary_sha256": "3cccdb7a6968400130cd3b4b729f608c75eb45754f8b928e432920839cf7bb43"
+      "source": "unchanged Gaussian reference results",
+      "seed_bases": {
+        "auxiliary": 123,
+        "inference": 12001,
+        "folds": 27011,
+        "candidates": 41017
+      }
     },
     {
       "scenario_ids": [
         3,
-        9
+        6,
+        9,
+        12
       ],
-      "source_summary_sha256": "3de508ad050d25e8014437303f47291cf2c394ab397d1f23707ab3fe11cc7277"
+      "source": "domain_logistic_seed2_B1000/summary/",
+      "seed_bases": {
+        "auxiliary": 123,
+        "inference": 1021001,
+        "folds": 1036011,
+        "candidates": 1050017
+      },
+      "source_summary_sha256": "13e9b4a3c45780d03beac70edf8c09f81031dcf9244bba8aac94b27203757f45"
     }
   ],
-  "note": "Approved Monte Carlo reference results; fresh runs receive new manifests. Normal diagnostics retain only MPPI mean-inference coordinates. Domain mean curves use the union of the original and denser local null grids; both are evaluated on the same replications.",
+  "note": "The unchanged homogeneous/covariate scenarios retain the original approved reference rows. Domain scenarios 3,6,9,12 use the standardized-Logistic seed2 B=1000 run. The code retains the rounded domain nonlinear regression coefficient c_L=0.555 used in those runs. Original and denser domain mean test grids use the same Monte Carlo replications. Normal diagnostics retain MPPI mean-inference coordinate 1 only.",
   "reference_sha256": {
     "dxa_pvalue_curves.csv": "9fef1888e4b986436fd59e916deeb929c6e8cd105b6eabcb0f137a216b096633",
     "dxa_results.csv": "19a43ff847218abb2923ffefac8759de003a2e065768e888c23e8c590b9d906b",
-    "mean_test_curves.csv": "81ee197c5cfac287abf1a7978d0bfdf27b1b58668b4b16d53a32ee728bff229b",
-    "normal_diagnostics.csv": "36fe4fa11c7969682a185bb20a5a6a0a2241ff623635dd18423299d0f023c30f",
-    "regression_test_curves.csv": "7bb1d36ded115cd54be4ae95cb2f7abcb2458622b747a2603eb7d5f52e74f1ff",
-    "simulation_summary.csv": "773228c47b7eb9dc6608cd46238ad9bb52d6d562a466a062889b196bdb30c88a"
+    "mean_test_curves.csv": "df7cfe6b7aced31a6510ede706d4b49c27e79e82679a790fdc9408c8d0f08769",
+    "normal_diagnostics.csv": "cc84aa5d72726bdd613ebcc0b69e273557994beeb87a7d449225687c0e33fca0",
+    "regression_test_curves.csv": "f06c6bfae4643a3e1742bf042c8c976fca6e2f23d2edbf0132b9e388b265dc49",
+    "simulation_summary.csv": "93606d70201c0b07b9a029588ce6126da844e2bec32f3f304d2d274ab13db4d2"
+  },
+  "figures_sha256": {
+    "mean_rejection_domain_raw_zoom.pdf": "2b3dc78d0466758ac76d7ac3a7cd02951c841ff2c00eb12e64a880f76fe87dfe",
+    "regression_rejection_domain_raw_zoom.pdf": "627a8c23d0fedd608aeadb3ec007e69c98afabfb95c630279db56f01b2de2c1e",
+    "normal_diag_mean_MPPI_all_settings.pdf": "6737a5a7de98a79695215eb10524d790fc81218fcce2b369a956d6d8e58bffe7"
   }
 }

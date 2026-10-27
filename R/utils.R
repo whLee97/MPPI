@@ -139,7 +139,7 @@ mppi_code_manifest <- function(root = ".") {
 mppi_source_files <- function(root = ".") {
   files <- c("utils.R", "config.R", "predictors.R", "nuisance_covariate.R",
              "nuisance_transport.R", "weights.R", "estimation.R", "methods.R",
-             "simulation.R", "dxa_data.R", "dxa_analysis.R", "summaries.R", "cli.R", "paper_outputs.R")
+             "simulation.R", "dxa_data.R", "dxa_analysis.R", "summaries.R", "cli.R", "plot_domain_raw_zoom.R", "paper_outputs.R")
   for (f in files) source(file.path(root, "R", f), local = .GlobalEnv)
   invisible(files)
 }

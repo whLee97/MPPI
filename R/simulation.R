@@ -1,7 +1,11 @@
 mppi_generate_inference_data <- function(cfg, scenario, replicate) {
-  seed <- mppi_seed(cfg$seeds$inference, scenario$id, replicate, 1L)
+  seed <- mppi_seed(mppi_simulation_seed_base(cfg, scenario, "inference"), scenario$id, replicate, 1L)
   mppi_with_seed(seed, {
-    x0 <- mppi_rmvnorm(cfg$N0, rep(0, cfg$d), diag(cfg$d))
+    x0 <- if (scenario$shift == "domain") {
+      mppi_rstd_logistic(cfg$N0, cfg$d)
+    } else {
+      mppi_rmvnorm(cfg$N0, rep(0, cfg$d), diag(cfg$d))
+    }
     if (scenario$shift == "homogeneous") {
       xs <- lapply(cfg$Ns, mppi_rmvnorm, mean = rep(0, cfg$d), sigma = diag(cfg$d))
     } else if (scenario$shift == "covariate") {
@@ -9,19 +13,19 @@ mppi_generate_inference_data <- function(cfg, scenario, replicate) {
         mppi_rmvnorm(cfg$Ns[s], cfg$covariate_means[[s]], diag(cfg$d))
       })
     } else {
-      latent <- lapply(cfg$Ns, mppi_rmvnorm, mean = rep(0, cfg$d), sigma = diag(cfg$d))
-      xs <- lapply(seq_len(cfg$S), function(s) {
-        sweep(latent[[s]] %*% t(cfg$domain_A[[s]]), 2L, cfg$domain_b[[s]], "+")
-      })
+      latent <- lapply(cfg$Ns, function(n) mppi_rstd_logistic(n, cfg$d))
+      xs <- lapply(seq_len(cfg$S), function(s)
+        sweep(latent[[s]] %*% t(cfg$domain_A[[s]]), 2L, cfg$domain_b[[s]], "+"))
     }
+    
     signal <- if (scenario$shift == "domain") {
       if (scenario$target == "mean") mppi_g_domain_mean(x0, scenario$dgp) else
-        mppi_g_complementary_regression(x0, scenario$dgp, cfg$regression_quadratic)
+        mppi_g_domain_regression(x0, scenario$dgp, cfg$regression_quadratic)
     } else if (scenario$target == "regression") {
       mppi_g_complementary_regression(x0, scenario$dgp, cfg$regression_quadratic)
     } else mppi_g_standard(x0, scenario$dgp)
     noise_sd <- if (scenario$shift == "domain" && scenario$target == "mean") {
-      if (scenario$dgp == "nonlinear") cfg$mean_nonlinear$noise_sd else 7
+      if (scenario$dgp == "nonlinear") cfg$mean_nonlinear$noise_sd else cfg$domain_mean_linear_noise_sd
     } else 1
     list(x0 = x0, y0 = as.numeric(signal + rnorm(cfg$N0, sd = noise_sd)), xs = xs)
   })
@@ -29,10 +33,10 @@ mppi_generate_inference_data <- function(cfg, scenario, replicate) {
 
 mppi_make_folds <- function(cfg, scenario, replicate, data) {
   fold0 <- mppi_near_equal_folds(cfg$N0, cfg$K,
-    mppi_seed(cfg$seeds$folds, scenario$id, replicate, 1L))
+    mppi_seed(mppi_simulation_seed_base(cfg, scenario, "folds"), scenario$id, replicate, 1L))
   folds_s <- lapply(seq_len(cfg$S), function(s) {
     mppi_near_equal_folds(nrow(data$xs[[s]]), cfg$K,
-      mppi_seed(cfg$seeds$folds, scenario$id, replicate, s + 1L))
+      mppi_seed(mppi_simulation_seed_base(cfg, scenario, "folds"), scenario$id, replicate, s + 1L))
   })
   list(target = fold0, sources = folds_s)
 }
@@ -58,13 +62,13 @@ mppi_run_replication <- function(cfg, scenario, replicate, predictors) {
   nuisance <- tryCatch(mppi_fit_simulation_nuisance(cfg, scenario, data, predictors, folds), error = mppi_catch_statistical_error)
   t_nuisance <- proc.time()[[3L]]
   truth <- mppi_truth(scenario$target, scenario$shift, scenario$dgp)
-  candidate_seed <- mppi_seed(cfg$seeds$candidates, scenario$id, replicate, 1L)
+  candidate_seed <- mppi_seed(mppi_simulation_seed_base(cfg, scenario, "candidates"), scenario$id, replicate, 1L)
   methods <- mppi_fit_all_methods(data, nuisance, scenario$target, truth, cfg$alpha,
                                   candidate_seed, cfg$optimizer)
   finished <- proc.time()[[3L]]
   list(version = cfg$version, scenario = scenario, replicate = replicate,
-       seeds = list(inference = mppi_seed(cfg$seeds$inference, scenario$id, replicate, 1L),
-                    folds = mppi_seed(cfg$seeds$folds, scenario$id, replicate, 1L),
+       seeds = list(inference = mppi_seed(mppi_simulation_seed_base(cfg, scenario, "inference"), scenario$id, replicate, 1L),
+                    folds = mppi_seed(mppi_simulation_seed_base(cfg, scenario, "folds"), scenario$id, replicate, 1L),
                     candidates = candidate_seed),
        truth = truth, methods = methods, config = cfg, folds = folds,
        rng_kind = RNGkind(),

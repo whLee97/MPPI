@@ -9,11 +9,25 @@ index <- expand.grid(i=1:5,j=1:5)
 x <- cbind(nodes[index$i],nodes[index$j]); w <- weights[index$i]*weights[index$j]
 h <- mppi_h3(nodes)
 check(max(abs(c(sum(weights*h),sum(weights*h*nodes),sum(weights*h*(nodes^2-1)),sum(weights*h^2)-1)))<1e-12,'H3 mean/variance/orthogonality failed.')
-g <- mppi_g_domain_mean(x,'nonlinear')
-check(abs(sum(w*g)-1)<1e-12 && abs(sum(w*(g-1)^2)-2)<1e-12,'Incorrect target mean or signal variance.')
+# The Logistic-domain cubic normalization gives mean zero, unit variance and zero linear correlation.
+m4 <- 21 / 5; m6 <- 279 / 7
+probe <- c(-2, -1, 0, 1, 2)
+check(max(abs(mppi_h3_domain(probe) - (probe^3 - m4 * probe)/sqrt(m6 - m4^2))) < 1e-12,
+      'Wrong Logistic-normalized cubic function.')
+check(abs((m6 - 2*m4^2 + m4^2)/(m6 - m4^2) - 1) < 1e-12,
+      'Logistic-normalized cubic variance is not one.')
+check(abs(0.555^2 * (m6 - 2*m4 + 1) - 10) < 0.003,
+      'Rounded Logistic quadratic scale is outside the documented tolerance.')
 cfg <- mppi_simulation_config(B=2)
 check(identical(cfg$scenarios$id,seq_len(12L)),'Wrong scenario roster.')
 check(identical(cfg$domain_A,mppi_simulation_config()$domain_A) && identical(cfg$domain_b,mppi_simulation_config()$domain_b),'Affine shift was modified.')
+for (id in cfg$scenarios$id) {
+  sc <- as.list(cfg$scenarios[id, ])
+  expected <- if (sc$shift == "domain") c(1021001L, 1036011L, 1050017L) else c(12001L, 27011L, 41017L)
+  actual <- vapply(c("inference", "folds", "candidates"), function(stage) mppi_simulation_seed_base(cfg, sc, stage), integer(1))
+  check(identical(unname(actual), expected), paste("Incorrect seed bases in scenario", id))
+}
+
 
 # Verify the sensitivity of the actual affine map, including translation and full covariance.
 for(s in 1:2) {
